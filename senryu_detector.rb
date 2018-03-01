@@ -1,5 +1,10 @@
 require 'natto'
 
+class Array
+  def has?(item)
+    !count(item).zero?
+  end
+end
 class SenryuDetector
   attr_accessor :ignore_words, :delete_words, :permission_posids
   def initialize
@@ -11,10 +16,8 @@ class SenryuDetector
   def senryu?(text)
     safe_text = delete_excludes(text)
     pronunciations(safe_text).each do |parsed|
-      if parsed.is_bos? || parsed.is_eos?
-        break
-      end
-      puts "#{parsed.posid}: #{parsed.surface}(#{parsed.feature})"
+      break if parsed.is_bos? || parsed.is_eos?
+      puts "#{parsed.posid}(#{be_permission?(parsed.posid) ? "Permission Exist" : "Permission Denied"}): #{parsed.surface}(#{parsed.feature})"
     end
   end
 
@@ -42,7 +45,11 @@ class SenryuDetector
     end
     dump
   end
+
+  def be_permission?(posid)
+    @permission_posids.has?(posid)
+  end
 end
 
-text = "乾杯"
+text = "今日もどったんばったん大騒ぎ"
 SenryuDetector.new.senryu?(text)

@@ -5,6 +5,24 @@ class Array
     !count(item).zero?
   end
 end
+
+class SenryuArray < Array
+  def text
+    text = []
+    each do |item|
+      text << item[:parsed].surface
+    end
+    text.join
+  end
+  def yomi
+    yomi = []
+    each do |item|
+      yomi << item[:yomi]
+    end
+    yomi.join
+  end
+end
+
 class SenryuDetector
   attr_accessor :ignore_words, :delete_words, :permission_posids
   def initialize
@@ -15,12 +33,19 @@ class SenryuDetector
 
   def senryu?(text)
     safe_text = delete_excludes(text)
+
+    senryu_elements = SenryuArray.new
     pronunciations(safe_text).each do |parsed|
       break if parsed.is_bos? || parsed.is_eos?
-      next if ignore?(parsed.surface)
 
-      puts "#{parsed.posid}: #{parsed.surface}(#{parsed.feature})"
+      senryu_element << {
+         parsed: parsed,
+         yomi: ignore?(parsed.surface) ?  '' : remove_not_pronucation(parsed.feature)
+      }
     end
+
+    puts senryu_element.text
+    puts senryu_element.yomi
   end
 
   private
@@ -54,6 +79,10 @@ class SenryuDetector
   def pronunciations(text)
     pronunciation_nm = Natto::MeCab.new('-F%f[8]')
     pronunciation_nm.enum_parse(text)
+  end
+
+  def remove_not_pronucation(text)
+    text.gsub(/ャ|ュ|ョ|ァ|ィ|ゥ|ェ|ォ|、|/, '')
   end
 end
 

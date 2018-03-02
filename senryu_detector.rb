@@ -33,22 +33,64 @@ class SenryuDetector
 
   def senryu?(text)
     safe_text = delete_excludes(text)
-
     senryu_elements = SenryuArray.new
+
+    retVal = ""
+
     pronunciations(safe_text).each do |parsed|
       break if parsed.is_bos? || parsed.is_eos?
-
-      senryu_element << {
-         parsed: parsed,
-         yomi: ignore?(parsed.surface) ?  '' : remove_not_pronucation(parsed.feature)
+      senryu_elements << {
+        parsed: parsed,
+        yomi: ignore?(parsed.surface) ? '' : remove_not_pronucation(parsed.feature)
       }
+
+      if _senryu?(senryu_elements)
+        retVal = senryu_elements.text
+        break
+      end
     end
 
-    puts senryu_element.text
-    puts senryu_element.yomi
+    return false if retVal.empty?
+    return retVal
   end
 
   private
+
+  def _senryu?(elements)
+    return false unless elements.yomi.length == 17 || elements.yomi.length == 18
+    checking = :kami
+    checking_length = { kami: 5, naka: elements.yomi.length - 10, shimo: 5 }
+
+    result = ""
+    yomi = ""
+
+    elements.each do |elm|
+      return false if yomi.length.zero? && !be_permission?(elm[:parsed].posid)
+
+      result += elm[:parsed].surface
+      yomi += elm[:yomi]
+
+      if (tmp = check_format(yomi, checking_length[checking], checking))
+        yomi, checking = tmp
+      else
+        return false
+      end
+    end
+
+    return true
+  end
+
+  def check_format(yomi, length, checking)
+    checking_ref = { kami: :naka, naka: :shimo, shimo: nil }
+
+    if yomi.length == length
+      return true if checking == :shimo
+      return ['', checking_ref[checking]]
+    elsif yomi.length > length
+      return false
+    end
+    return [yomi, checking]
+  end
 
   def read_file(filename)
     reading_line = []
@@ -86,5 +128,8 @@ class SenryuDetector
   end
 end
 
-text = "今日も「どったんばったん」大騒ぎ"
-SenryuDetector.new.senryu?(text)
+Detector = SenryuDetector.new
+loop do
+  text = gets.chomp
+  p Detector.senryu?(text)
+end

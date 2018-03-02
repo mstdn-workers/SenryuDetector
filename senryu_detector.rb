@@ -42,7 +42,13 @@ class SenryuDetector
         yomi: ignore?(parsed.surface) ? '' : remove_not_pronucation(parsed.feature)
       }
 
+      senryu_elements.shift while senryu_elements.yomi.length > 18
+
       if (ret_val = _senryu?(senryu_elements))
+        return ret_val
+      end
+
+      if senryu_elements[1..-1].yomi.length == 17 && (ret_val = _senryu?(senryu_elements[1..-1]))
         return ret_val
       end
     end
@@ -80,7 +86,7 @@ class SenryuDetector
       end
     end
 
-    return result.values.join('　')
+    return result.values
   end
 
   def check_format(yomi, length, checking)

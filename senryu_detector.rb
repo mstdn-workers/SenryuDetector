@@ -21,11 +21,6 @@ class SenryuDetector
     end
   end
 
-  def pronunciations(text)
-    pronunciation_nm = Natto::MeCab.new('-F%f[8]')
-    pronunciation_nm.enum_parse(text)
-  end
-
   private
 
   def read_file(filename)
@@ -48,6 +43,11 @@ class SenryuDetector
 
   def be_permission?(posid)
     @permission_posids.has?(posid)
+  end
+
+  def pronunciations(text)
+    pronunciation_nm = Natto::MeCab.new('-F%f[8]')
+    pronunciation_nm.enum_parse(text)
   end
 end
 

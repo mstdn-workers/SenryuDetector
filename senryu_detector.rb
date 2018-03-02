@@ -17,7 +17,9 @@ class SenryuDetector
     safe_text = delete_excludes(text)
     pronunciations(safe_text).each do |parsed|
       break if parsed.is_bos? || parsed.is_eos?
-      puts "#{parsed.posid}(#{be_permission?(parsed.posid) ? "Permission Exist" : "Permission Denied"}): #{parsed.surface}(#{parsed.feature})"
+      next if ignore?(parsed.surface)
+
+      puts "#{parsed.posid}: #{parsed.surface}(#{parsed.feature})"
     end
   end
 
@@ -41,6 +43,10 @@ class SenryuDetector
     dump
   end
 
+  def ignore?(word)
+    @ignore_words.has?(word)
+  end
+
   def be_permission?(posid)
     @permission_posids.has?(posid)
   end
@@ -51,5 +57,5 @@ class SenryuDetector
   end
 end
 
-text = "今日もどったんばったん大騒ぎ"
+text = "今日も「どったんばったん」大騒ぎ"
 SenryuDetector.new.senryu?(text)

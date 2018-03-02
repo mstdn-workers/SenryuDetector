@@ -35,8 +35,6 @@ class SenryuDetector
     safe_text = delete_excludes(text)
     senryu_elements = SenryuArray.new
 
-    retVal = ""
-
     pronunciations(safe_text).each do |parsed|
       break if parsed.is_bos? || parsed.is_eos?
       senryu_elements << {
@@ -44,15 +42,12 @@ class SenryuDetector
         yomi: ignore?(parsed.surface) ? '' : remove_not_pronucation(parsed.feature)
       }
 
-      if _senryu?(senryu_elements)
-        retVal = senryu_elements.text
-        break
+      if (ret_val = _senryu?(senryu_elements))
+        return ret_val
       end
     end
 
-    p senryu_elements.text
-    return false if retVal.empty?
-    return retVal
+    return false
   end
 
   private
@@ -61,16 +56,21 @@ class SenryuDetector
     return false unless elements.yomi.length == 17 || elements.yomi.length == 18
     checking = :kami
     checking_length = { kami: 5, naka: elements.yomi.length - 10, shimo: 5 }
+    pre_checking = { kami: :kami, naka: :kami, shimo: :naka }
 
-    result = ""
-    yomi = ""
+    result = Hash.new('')
+    yomi = ''
 
     elements.each do |elm|
-      result += elm[:parsed].surface
-      next if ignore?(elm[:parsed].surface)
 
-      return false if yomi.length.zero? && !be_permission?(elm[:parsed].posid)
+      if special_ignore?(elm[:parsed].surface) && yomi.empty?
+        result[pre_checking[checking]] += elm[:parsed].surface
+        next
+      end
 
+      return false if yomi.empty? && !be_permission?(elm[:parsed].posid)
+
+      result[checking] += elm[:parsed].surface
       yomi += elm[:yomi]
 
       if (tmp = check_format(yomi, checking_length[checking], checking))
@@ -80,7 +80,7 @@ class SenryuDetector
       end
     end
 
-    return true
+    return result.values.join('　')
   end
 
   def check_format(yomi, length, checking)
@@ -115,6 +115,12 @@ class SenryuDetector
 
   def ignore?(word)
     @ignore_words.has?(word)
+  end
+
+  # 終端となる記号は特別な動きをする
+  def special_ignore?(word)
+    special_ignore = ['］', '」', '＞','｝']
+    special_ignore.has?(word)
   end
 
   def be_permission?(posid)

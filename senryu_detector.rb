@@ -50,6 +50,7 @@ class SenryuDetector
       end
     end
 
+    p senryu_elements.text
     return false if retVal.empty?
     return retVal
   end
@@ -65,9 +66,11 @@ class SenryuDetector
     yomi = ""
 
     elements.each do |elm|
+      result += elm[:parsed].surface
+      next if ignore?(elm[:parsed].surface)
+
       return false if yomi.length.zero? && !be_permission?(elm[:parsed].posid)
 
-      result += elm[:parsed].surface
       yomi += elm[:yomi]
 
       if (tmp = check_format(yomi, checking_length[checking], checking))

@@ -143,8 +143,8 @@ class SenryuDetector
   end
 end
 
-Detector = SenryuDetector.new
-loop do
-  text = gets.chomp
-  p Detector.senryu?(text)
-end
+# Detector = SenryuDetector.new
+# loop do
+#   text = gets.chomp
+#   p Detector.senryu?(text)
+# end

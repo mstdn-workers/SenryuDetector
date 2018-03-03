@@ -19,7 +19,7 @@ module Register
 
   private
 
-  APP_NAME = "Name Change Bot"
+  APP_NAME = "Senryu Detector"
   DEFAULT_CONFIG = {
     "host" => "mstdn-workers.com",
     "scopes" => "read write",
@@ -71,3 +71,6 @@ module Register
     STDIN.noecho { gets.chomp }
   end
 end
+
+include Register
+init_app

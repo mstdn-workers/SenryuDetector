@@ -10,4 +10,5 @@ gem "httpclient"
 gem "rb-readline"
 gem 'mastodon-api'
 gem 'oauth2'
-gem 'websocket-client-simple'
+gem 'eventmachine'
+gem 'faye-websocket'

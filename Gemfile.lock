@@ -5,9 +5,12 @@ GEM
       public_suffix (>= 2.0.2, < 4.0)
     domain_name (0.5.20170404)
       unf (>= 0.0.5, < 1.0.0)
-    event_emitter (0.2.6)
+    eventmachine (1.2.5)
     faraday (0.12.2)
       multipart-post (>= 1.2, < 3)
+    faye-websocket (0.10.7)
+      eventmachine (>= 0.12.0)
+      websocket-driver (>= 0.5.1)
     ffi (1.9.23)
     http (2.2.2)
       addressable (~> 2.3)
@@ -40,21 +43,21 @@ GEM
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.5)
-    websocket (1.2.5)
-    websocket-client-simple (0.3.0)
-      event_emitter
-      websocket
+    websocket-driver (0.7.0)
+      websocket-extensions (>= 0.1.0)
+    websocket-extensions (0.1.3)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  eventmachine
+  faye-websocket
   httpclient
   mastodon-api
   natto
   oauth2
   rb-readline
-  websocket-client-simple
 
 BUNDLED WITH
    1.16.0

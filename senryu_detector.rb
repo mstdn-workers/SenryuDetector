@@ -1,4 +1,4 @@
-require 'natto'
+require 'nameko'
 
 class Array
   def has?(item)
@@ -36,10 +36,14 @@ class SenryuDetector
     senryu_elements = SenryuArray.new
 
     pronunciations(safe_text).each do |parsed|
-      break if parsed.is_bos? || parsed.is_eos?
+      if parsed.feature[:pronunciation].nil?
+        senryu_elements = SenryuArray.new
+        next
+      end
+      
       senryu_elements << {
         parsed: parsed,
-        yomi: ignore?(parsed.surface) ? '' : remove_not_pronucation(parsed.feature)
+        yomi: ignore?(parsed.surface) ? '' : remove_not_pronucation(parsed.feature[:pronunciation])
       }
 
       senryu_elements.shift while senryu_elements.yomi.length > 18
@@ -134,8 +138,8 @@ class SenryuDetector
   end
 
   def pronunciations(text)
-    pronunciation_nm = Natto::MeCab.new('-F%f[8]')
-    pronunciation_nm.enum_parse(text)
+    mecab = Nameco::MeCab.new('-d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
+    mecab.parse(text)
   end
 
   def remove_not_pronucation(text)
@@ -143,8 +147,8 @@ class SenryuDetector
   end
 end
 
-Detector = SenryuDetector.new
-loop do
-  text = gets.chomp
-  p Detector.senryu?(text)
-end
+# Detector = SenryuDetector.new
+# loop do
+#   text = gets.chomp
+#   p Detector.senryu?(text)
+# end

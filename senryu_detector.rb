@@ -29,6 +29,7 @@ class SenryuDetector
     @delete_words, @ignore_words = read_file('exclude_word.tsv')
     @permission_posids, * = read_file('permission.tsv')
     @permission_posids.map!(&:to_i)
+    @mecab = Nameko::Mecab.new('-d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
   end
 
   def senryu?(text)
@@ -40,7 +41,7 @@ class SenryuDetector
         senryu_elements = SenryuArray.new
         next
       end
-      
+
       senryu_elements << {
         parsed: parsed,
         yomi: ignore?(parsed.surface) ? '' : remove_not_pronucation(parsed.feature[:pronunciation])
@@ -49,10 +50,12 @@ class SenryuDetector
       senryu_elements.shift while senryu_elements.yomi.length > 18
 
       if (ret_val = _senryu?(senryu_elements))
+        break unless correct_end?(ret_val)
         return ret_val
       end
 
       if senryu_elements[1..-1].yomi.length == 17 && (ret_val = _senryu?(senryu_elements[1..-1]))
+        break unless correct_end?(ret_val)
         return ret_val
       end
     end
@@ -91,6 +94,10 @@ class SenryuDetector
     end
 
     return result.values
+  end
+
+  def correct_end?(senryu)
+    senryu.all? { |e| e[-1] != "っ" }
   end
 
   def check_format(yomi, length, checking)
@@ -138,8 +145,7 @@ class SenryuDetector
   end
 
   def pronunciations(text)
-    mecab = Nameco::MeCab.new('-d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
-    mecab.parse(text)
+    @mecab.parse(text)
   end
 
   def remove_not_pronucation(text)

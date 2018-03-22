@@ -23,7 +23,6 @@ class Main
             senryu = nil
             senryu = @detector.senryu?(remove_tag.call(body['content'])) unless body['content'].include?('川柳検知bot')
             if senryu
-              p senryu
               p @detector.senryu?(senryu.join)
             end
           end
